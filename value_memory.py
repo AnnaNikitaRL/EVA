@@ -26,8 +26,8 @@ class ValueMemory(object):
     def build_tree(self):
         self.tree = neighbors.KDTree(np.array(self.idx_to_keys))
     
-    def nn_Q(self, query):
-        return torch.mean( torch.stack([self.memory[q] for q in self.tree.query(query[np.newaxis], k=K)[1][0]]), axis=0)
+    def nn_Q(self, query, num_neighbors=5):
+        return torch.mean( torch.stack([self.memory[q] for q in self.tree.query(query[np.newaxis], k=num_neighbors)[1][0]]), axis=0)
 
     def __len__(self):
         return len(self.memory)

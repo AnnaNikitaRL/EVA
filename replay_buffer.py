@@ -50,7 +50,7 @@ class ReplayMemory(object):
                 return False
         return True
 
-    def neighbours(self, query, num_neighbors=M, return_embed=False):
+    def neighbors(self, query, num_neighbors=M, return_embed=False):
         idxs, dist = self.engine.nn_index(query[np.newaxis], num_neighbors=num_neighbors+50)
         idxs, dist = idxs[0], dist[0]
 
