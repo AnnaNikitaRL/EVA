@@ -149,7 +149,6 @@ class PreprocessAtariObs(ObservationWrapper):
                 return np.transpose(img, axes=[2,0,1])
 
 
-
 class FrameBuffer(gym.Wrapper):
     def __init__(self, env, n_frames=4, dim_order='pytorch'):
         """A gym wrapper that reshapes, crops and scales image into the desired shapes"""
@@ -191,3 +190,16 @@ class FrameBuffer(gym.Wrapper):
         self.framebuffer = np.concatenate(
             [img, cropped_framebuffer], axis=axis)
 
+def PrimaryAtariWrap(env, clip_rewards=True, env_reset_action='fire'):
+    assert 'NoFrameskip' in env.spec.id
+    env = MaxAndSkipEnv(env, skip=4)
+    env = EpisodicLifeEnv(env)
+    if env_reset_action == 'fire':
+        env = FireResetEnv(env)
+    elif env_reset_action == 'noop':
+        env = NoopResetEnv(env)
+
+    if clip_rewards:
+        env = atari_wrappers.ClipRewardEnv(env)
+    env = PreprocessAtariObs(env)
+    return env
