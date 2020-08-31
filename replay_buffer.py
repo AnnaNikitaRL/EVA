@@ -1,15 +1,16 @@
 import numpy as np
+import pyflann
 import random
 
 
 class ReplayMemory(object):
 
-    def __init__(self, capacity, flann, emb_dimension=DIMENSION, path_length=PATH_LENGTH, rebuild_freq=REBUILD_FREQ):
+    def __init__(self, capacity, emb_dimension=DIMENSION, path_length=PATH_LENGTH, rebuild_freq=REBUILD_FREQ):
         self.capacity = capacity
         self.memory = []
         self.embed = np.zeros((capacity, emb_dimension),dtype='float32')
         self.position = 0
-        self.engine = flann
+        self.engine = pyflann.FLANN()
         self.path_length = path_length
         self.rebuild_freq=REBUILD_FREQ
         self.rebuild_counter=0

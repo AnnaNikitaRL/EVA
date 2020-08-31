@@ -129,24 +129,24 @@ class ClipRewardEnv(gym.RewardWrapper):
 
 from skimage import transform
 
-class PreprocessAtariObs(ObservationWrapper):
-    def __init__(self, env, img_size=(84,84), crop_height=(0, 210), crop_width=(0, 160), channel_weights=[0.8, 0.1, 0.1]):
-            """A gym wrapper that crops, scales image into the desired shapes and grayscales it."""
-            ObservationWrapper.__init__(self, env)
-            self.img_size = (1,) + img_size
-            self.crop_height = crop_height
-            self.crop_width = crop_width
-            self.channel_weights = channel_weights
-            self.observation_space = Box(0.0, 1.0, self.img_size)
-            def _to_gray_scale(self, rgb, channel_weights=self.channel_weights):
-                return np.sum(rgb * np.array(channel_weights, dtype=np.float32).reshape((1,1,3)), axis=2, keepdims=True)
+class PreprocessAtariObs(gym.ObservationWrapper):
+    def __init__(self, env, img_size=(84,84), crop_height=(0, 210), crop_width=(0, 160)):
+        """A gym wrapper that crops, scales image into the desired shapes and grayscales it."""
+        super().__init__(env)
+        self.img_size = (1,) + img_size
+        self.crop_height = crop_height
+        self.crop_width = crop_width
+        self.observation_space = Box(0.0, 1.0, self.img_size)
 
-            def observation(self, img):
-                """what happens to each observation"""
-                img = self._to_gray_scale(img.astype(np.float32)/255.)
-                img = transform.resize(img[ self.crop_height[0] : self.crop_height[1] ][ self.crop_width[0] : self.crop_width[1] ], 
-                                       self.img_size[1:])
-                return np.transpose(img, axes=[2,0,1])
+    def _to_gray_scale(self, rgb, channel_weights=[0.8, 0.1, 0.1]):
+        return np.sum(rgb * np.array(channel_weights, dtype=np.float32).reshape((1,1,3)), axis=2, keepdims=True)
+
+    def observation(self, img):
+        """what happens to each observation"""
+        img = self._to_gray_scale(img.astype(np.float32)/255.)
+        img = transform.resize(img[ self.crop_height[0] : self.crop_height[1] ][ self.crop_width[0] : self.crop_width[1] ], 
+                                    self.img_size[1:])
+        return np.transpose(img, axes=[2,0,1])
 
 
 class FrameBuffer(gym.Wrapper):
@@ -190,7 +190,7 @@ class FrameBuffer(gym.Wrapper):
         self.framebuffer = np.concatenate(
             [img, cropped_framebuffer], axis=axis)
 
-def PrimaryAtariWrap(env, clip_rewards=True, env_reset_action='fire'):
+def wrap_atari(env, clip_rewards=True, env_reset_action='fire'):
     assert 'NoFrameskip' in env.spec.id
     env = MaxAndSkipEnv(env, skip=4)
     env = EpisodicLifeEnv(env)
@@ -200,6 +200,6 @@ def PrimaryAtariWrap(env, clip_rewards=True, env_reset_action='fire'):
         env = NoopResetEnv(env)
 
     if clip_rewards:
-        env = atari_wrappers.ClipRewardEnv(env)
+        env = ClipRewardEnv(env)
     env = PreprocessAtariObs(env)
     return env
