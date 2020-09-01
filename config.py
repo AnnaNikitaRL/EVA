@@ -1,6 +1,11 @@
 import argparse
 
 class Config(argparse.Namespace):
+    '''
+    Class for storing the parameters of the experiments.
+    Designed to work with argparse. so the following
+    default values can be overridden in the experiment.
+    '''
     def __init__(self):
         super().__init__()
         self.envname = "BreakoutNoFrameskip-v4"
