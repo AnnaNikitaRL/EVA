@@ -1,18 +1,21 @@
 import numpy as np
 import pyflann
 import random
+from collections import namedtuple
 
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'reward', 'next_state'))
 
-class ReplayMemory(object):
+class ReplayBuffer(object):
 
-    def __init__(self, capacity, emb_dimension=DIMENSION, path_length=PATH_LENGTH, rebuild_freq=REBUILD_FREQ):
+    def __init__(self, capacity, emb_dimension, path_length, rebuild_freq=500):
         self.capacity = capacity
         self.memory = []
-        self.embed = np.zeros((capacity, emb_dimension),dtype='float32')
+        self.embed = np.zeros((capacity, emb_dimension), dtype='float32')
         self.position = 0
         self.engine = pyflann.FLANN()
         self.path_length = path_length
-        self.rebuild_freq=REBUILD_FREQ
+        self.rebuild_freq = rebuild_freq
         self.rebuild_counter=0
         self.last_rebuild_position = 0
 

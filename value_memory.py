@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn import neighbors
 
-class ValueMemory(object):
+class ValueBuffer(object):
     
     def __init__(self, capacity):
         self.capacity = capacity
