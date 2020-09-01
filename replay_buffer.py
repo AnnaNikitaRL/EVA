@@ -7,38 +7,41 @@ Transition = namedtuple('Transition',
                         ('state', 'action', 'reward', 'next_state'))
 
 class ReplayBuffer(object):
-
+    """ Cyclic buffer that stores transitions and embeddings observed. 
+    Additionally supports  functionality to find and return fixed number of neigbors for each index. 
+    Search for nearest neigbors is done with help of FLANN library for fast approximate nearest neighbors search """
+    
     def __init__(self, capacity, emb_dimension, path_length, rebuild_freq=500):
-        self.capacity = capacity
-        self.memory = []
-        self.embed = np.zeros((capacity, emb_dimension), dtype='float32')
-        self.position = 0
-        self.engine = pyflann.FLANN()
-        self.path_length = path_length
-        self.rebuild_freq = rebuild_freq
-        self.rebuild_counter=0
+        self.capacity              = capacity
+        self.memory                = []
+        self.embeddings            = np.zeros((capacity, emb_dimension), dtype='float32')
+        self.position              = 0
+        self.engine                = pyflann.FLANN()
+        self.path_length           = path_length
+        self.rebuild_freq          = rebuild_freq
+        self.rebuild_counter       = 0
         self.last_rebuild_position = 0
 
-    #use next_state = None if terminal
-    def push(self, state, action, reward, next_state, embed):
-        """Saves a transition."""
+    def push(self, state, action, reward, next_state, embedding):
+        """ Saves a transition and embedding """
+        
         self.rebuild_counter+=1
         if len(self.memory) < self.capacity:
             self.memory.append(None)
         else:
-            if self.rebuild_counter >= REBUILD_FREQ:
+            if self.rebuild_counter >= self.rebuild_freq:
                 self.rebuild_counter = 0
-                self.engine.build_index(self.embed)
+                self.engine.build_index(self.embedding)
                 self.last_rebuild_position = self.position
 
-        self.memory[self.position] = Transition(state, action, reward, next_state)
-        self.embed[self.position] = embed
+        self.memory[self.position]      = Transition(state, action, reward, next_state)
+        self.embeddings[self.position]  = embedding
+        self.position                   = (self.position + 1) % self.capacity
 
 
-        self.position = (self.position + 1) % self.capacity
-
-
-    def is_idx_permitted(self, idx):
+    def _is_idx_permitted(self, idx):
+        """ Checks if index is permitted """
+           
         if (self.position >= self.last_rebuild_position):
             if(idx <=self.position and idx >= self.last_rebuild_position):
                 return False
@@ -54,23 +57,21 @@ class ReplayBuffer(object):
                 return False
         return True
 
-    def neighbors(self, query, num_neighbors=M, return_embed=False):
+    def neighbors(self, query, num_neighbors=M, return_embeddings=False):
+        """ For fixed index calculates M number of neighbors and returns their indecies and embeddings if requested """
+         
         idxs, dist = self.engine.nn_index(query[np.newaxis], num_neighbors=num_neighbors+50)
         idxs, dist = idxs[0], dist[0]
-
-
-        idxs = [idx for idx in idxs if self.is_idx_permitted(idx)][:num_neighbors]
-
-        if return_embed:
-            return idxs, [self.embed[idx] for idx in idxs]
+        
+        idxs       = [idx for idx in idxs if self._is_idx_permitted(idx)][:num_neighbors]
+        if return_embeddings:
+            return idxs, [self.embedding[idx] for idx in idxs]
         else:
             return idxs
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
 
-
     def __len__(self):
         return len(self.memory)
-
 
