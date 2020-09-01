@@ -6,7 +6,7 @@ from qnetwork import Qnet
 from atari_wrappers import wrap_atari, FrameBuffer
 import torch
 from tcp import trajectory_central_planning
-from value_memory import ValueBuffer
+from value_buffer import ValueBuffer
 from replay_buffer import ReplayBuffer
 import logging
 
