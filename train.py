@@ -34,7 +34,42 @@ def train(Q_param, Q_target, replay, value_buffer, config):
             next_state = None
         return next_state, reward, is_terminal
 
+    def train_step(config):
+        """
+        train step per batch, single step of the optimisation as in DQN model.
+        Implementation is inspired by official pytorch turorial for DQN
+        https://pytorch.org/tutorials/
+        """
+        # Take state, action, reward, next_state per batch from replay buffer
+        state_batch, action_batch, reward_batch, next_state_batch = zip(*replay.sample(config.batch_size))
+        state_batch      = torch.from_numpy(np.stack(state_batch)).to(device)
+        action_batch     = torch.LongTensor(action_batch).view(-1,1).to(device)
+        
+        # Compute mask of non-terminal states
+        non_final_mask   = torch.BoolTensor([next_state_batch_i is not None 
+                                             for next_state_batch_i in next_state_batch]).view(-1).to(device)
 
+        # concatenate non terminal state batch elements
+        next_state_batch = torch.from_numpy(np.stack([next_state_batch_i 
+                                                      for next_state_batch_i in next_state_batch 
+                                                      if next_state_batch_i is not None])).to(device)
+
+        reward_batch     = torch.FloatTensor(reward_batch).view(-1,1).to(device)
+
+        # Clean optimizer
+        optimizer.zero_grad()
+        
+        # Compute Q values for all next states. 
+        # Expected values for non-terminal next states are computed based on older target net. 
+        # The use of mask helps to have expected state value or 0 for terminal state
+        Q_predicted              = qnet(state_batch)[0].gather(1, action_batch)
+        Q_target                 = torch.zeros_like(Q_predicted)
+        Q_target[non_final_mask] = target_net(next_state_batch)[0].max(1, keepdim=True)[0].detach()
+        
+        # Compute expected Q values and optimize the model
+        loss = F.mse_loss(Q_predicted, Q_target*config.gamma + reward_batch)
+        loss.backward()
+        optimizer.step() 
 
 
 
