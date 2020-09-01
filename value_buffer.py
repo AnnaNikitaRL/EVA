@@ -2,32 +2,33 @@ import numpy as np
 from sklearn import neighbors
 
 class ValueBuffer(object):
-    
+    """ Cyclic buffer which stores the value estimates resulting from planning process """
+
     def __init__(self, capacity):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
-        self.idx_to_keys = []
-        self.tree = None
+        self.capacity    = capacity
+        self.values      = []
+        self.position    = 0
+        self.embeddings = []
+        self.tree        = None
         
-    def push(self, embed, value):
-        """Saves a transition."""
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-            self.idx_to_keys.append(None)
+    def push(self, embedding, value):
+        """ Saves value and embedding """
+        if len(self.values) < self.capacity:
+            self.values.append(None)
+            self.embeddings.append(None)
                 
-        self.memory[self.position] = value
-        self.idx_to_keys[self.position] = embed
+        self.values[self.position]      = value
+        self.embeddings[self.position]  = embedding
         self.position = (self.position + 1) % self.capacity
 
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-    
     def build_tree(self):
-        self.tree = neighbors.KDTree(np.array(self.idx_to_keys))
+        """ Build tree of neighbors on space of embeddings using default Euclidean metric """
+        self.tree = neighbors.KDTree(np.array(self.embeddings))
     
-    def nn_Q(self, query, num_neighbors=5):
-        return torch.mean( torch.stack([self.memory[q] for q in self.tree.query(query[np.newaxis], k=num_neighbors)[1][0]]), axis=0)
+    def nn_QNP_mean(self, query, n_neighbors=5):
+        """ Calculates and returns action-value averaged across fixed number of neighbors """
+        return torch.mean( torch.stack([self.values[q] for q in self.tree.query(query[np.newaxis], k=n_neighbors)[1][0]]), axis=0)
 
     def __len__(self):
-        return len(self.memory)
+        """ Returns size of stored values """
+        return len(self.values)
