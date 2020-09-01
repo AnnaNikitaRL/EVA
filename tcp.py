@@ -1,6 +1,6 @@
 import logging
 
-def trajectory_central_planning(replay, embedding, value_buffer, num_neighbors, path_length):
+def trajectory_central_planning(replay, embedding, value_buffer, config):
     """ trajectory selection and planning 
     
     Estimates for trajectories from replay buffer are calculated as below.
@@ -25,7 +25,7 @@ def trajectory_central_planning(replay, embedding, value_buffer, num_neighbors, 
     if len(traj_start_idxs) == 0:
         logging.info("no neighbors found")
     else:
-        traj_offsets = trajectory_offset(traj_start_idxs, path_length)
+        traj_offsets = trajectory_offset(traj_start_idxs, config.path_length)
         
         # initialisation and preparation
         traj_offsets     = np.array(traj_offsets)
@@ -34,11 +34,11 @@ def trajectory_central_planning(replay, embedding, value_buffer, num_neighbors, 
         VNP = torch.zeros( (len(traj_start_idxs),1) )
 
         # we update values from the end to the beginning of the trajectories
-        for t in reversed(range(min(path_length, max_traj_offsets + 1))):
+        for t in reversed(range(min(config.path_length, max_traj_offsets + 1))):
 
-            nonterm      = t <= traj_offsets
-            nonterm_idxs = np.where(nonterm)[0]
-            nonterm      = torch.BoolTensor(nonterm)
+            non_final_mask = t <= traj_offsets
+            nonterm_idxs   = np.where(non_final_mask)[0]
+            non_final_mask = torch.BoolTensor(non_final_mask)
 
             state_batch = [replay.memory[(traj_start_idxs[traj_number] + t) % replay.capacity].state 
                            for traj_number in nonterm_idxs]
@@ -50,14 +50,14 @@ def trajectory_central_planning(replay, embedding, value_buffer, num_neighbors, 
             # for all states corresponding to non last length of trajectory (t != T), 
             # we overwrite parametric values of Q function with 
             # non-parametric values of Q function for the action that has been chosen at moment t, a_t. 
-            if t < path_length - 1:
+            if t < config.path_length - 1:
                 action_batch = [replay.memory[(traj_start_idxs[traj_number] + t) % replay.capacity].action
                                 for traj_number in nonterm_idxs]
                 action_batch = torch.LongTensor(action_batch).view(-1,1)
                 reward_batch = [replay.memory[(traj_start_idxs[traj_number] + t) % replay.capacity].reward 
                                 for traj_number in nonterm_idxs]
                 reward_batch = torch.FloatTensor(reward_batch).view(-1,1)
-                QNP.scatter_(1, action_batch, reward_batch + gamma * VNP[nonterm])
+                QNP.scatter_(1, action_batch, reward_batch + config.gamma * VNP[non_final_mask])
 
             VNP[nonterm] = torch.max(QNP,dim=1,keepdim=True)[0]
             
@@ -68,13 +68,13 @@ def trajectory_central_planning(replay, embedding, value_buffer, num_neighbors, 
         # re-build value buffer to be able to find neighbors taking into account updated values
         value_buffer.build_tree()
 
-def trajectory_offset(traj_start_idxs, path_length):
+def trajectory_offset(traj_start_idxs, config):
     """finds last index of the trajectory in replay buffer for start indxs of the trajectories"""
     traj_offsets = [] 
     
     # for each index we follow to the next state in replay buffer until path length or terminal state
     for traj_start_idx in traj_start_idxs:     
-        for idx in range(path_length):
+        for idx in range(config.path_length):
             if replay.memory[(traj_start_idx + idx) % replay.capacity].next_state is None:
                 break
         traj_offsets.append(idx)
