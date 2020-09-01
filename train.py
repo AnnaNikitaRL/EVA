@@ -1,8 +1,13 @@
-def train(Q_param, Q_target, replay, value_buffer, config):
+import torch
+import torch.nn.functional as F
+import numpy as np
+
+def train(env, Q_param, Q_target, optimizer, replay, value_buffer, config, device):
     """
     performs loop for a train step for EVA
     """
-    def choose_action_embedding(state, n_actions, lambd, epsilon):
+    n_actions = env.action_space.n
+    def choose_action_embedding(state, lambd, epsilon):
         """
         EVA policy is dictated by the action-value function 
         
@@ -70,10 +75,6 @@ def train(Q_param, Q_target, replay, value_buffer, config):
         loss = F.mse_loss(Q_predicted, Q_target*config.gamma + reward_batch)
         loss.backward()
         optimizer.step() 
-
-
-
-
 
 
     total_rewards     = []  
