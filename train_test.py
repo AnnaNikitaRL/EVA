@@ -32,8 +32,8 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
                          'total_global_steps' : total_global_steps},
                          rew_file
                     )
-        with open (full_filename('replay_buffer.pkl'), 'wb') as replay_file:
-            pickle.dump(replay, replay_file)
+        # with open (full_filename('replay_buffer.pkl'), 'wb') as replay_file:
+        #     pickle.dump(replay, replay_file)
 
         with open (full_filename('value_buffer_{}.pkl'.format(episode)), 'wb') as vb_file:
             pickle.dump(value_buffer, vb_file)
@@ -163,11 +163,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             
             # we call trajectory central planning with TCP frequency and when replay is full
             if ((global_step % config.tcp_frequency) == 0) and  (len(replay) == replay.capacity) :           
-                trajectory_central_planning(replay, 
-                                            embedding, 
-                                            value_buffer, 
-                                            num_neighbors=config.num_tcp_paths, 
-                                            path_length=config.path_length)            
+                trajectory_central_planning(embedding, replay, value_buffer, qnet, config, device)
             # update of target net periodically
             global_step +=1           
             if (global_step % config.t_update) == 0:
