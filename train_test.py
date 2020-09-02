@@ -25,7 +25,6 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         return os.path.normpath('/'.join([config.save_dir, filename]))
 
     def save_results(episode):
-        os.makedirs(config.save_dir, exist_ok=True)
         with open (full_filename('rewards.pkl'), 'wb') as rew_file:
             pickle.dump({'eval_rewards' : eval_rewards,
                          'eval_global_steps' : eval_global_steps,
@@ -142,11 +141,12 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             state_frames = np.repeat(state_frames[:, :, :, np.newaxis], 3, axis=3)
             state_frames = [frame for frame in state_frames]
             movie = editor.ImageSequenceClip(state_frames, fps=30)
-            movie.write_videofile(full_filename('movie_{}'.format(episode)), 
+            movie.write_videofile(full_filename('movie_{}.mp4'.format(episode)), 
                                   verbose=False, codec='mpeg4', logger=None)
 
         return np.mean(episode_rewards)
 
+    os.makedirs(config.save_dir, exist_ok=True)
     for episode in range(1, config.n_episodes + 1, 1):
         state = env.reset()
         is_terminal = False
