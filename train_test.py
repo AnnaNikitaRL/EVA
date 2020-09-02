@@ -8,9 +8,10 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
     performs loop for a train step for EVA
     """
     n_actions = env.action_space.n
-	eval_rewards = []
+    eval_rewards = []
     total_rewards = []
     eval_global_steps = []
+    global_step = 0
 
     def choose_action_embedding(state, epsilon):
         """
@@ -44,7 +45,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             next_state = None
         return next_state, reward, is_terminal
 
-    def train_step(config):
+    def train_step():
         """
         train step per batch, single step of the optimisation as in DQN model.
         Implementation is inspired by official pytorch turorial for DQN
@@ -73,32 +74,32 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         # Expected values for non-terminal next states are computed based on older target net. 
         # The use of mask helps to have expected state value or 0 for terminal state
         q_predicted              = qnet(state_batch)[0].gather(1, action_batch)
-        q_target                 = torch.zeros_like(Q_predicted)
+        q_target                 = torch.zeros_like(q_predicted)
         q_target[non_final_mask] = target_net(next_state_batch)[0].max(1, keepdim=True)[0].detach()
         
         # Compute expected Q values and optimize the model
-        loss = F.mse_loss(q_predicted, q_target*config.gamma + reward_batch)
+        loss = F.mse_loss(q_predicted, q_target * config.gamma + reward_batch)
         loss.backward()
         optimizer.step()
     
     def eval(n_episodes = 10):
-		"""
-		Runs n_episodes episodes with epsilon=0 and returns mean reward.
-		"""
-		episode_rewards = []
-		for _ in range(n_episodes):
-			state = env.reset()
-			is_terminal = False
-			episode_reward = 0.
+        """
+        Runs n_episodes episodes with epsilon=0 and returns mean reward.
+        """
+        episode_rewards = []
+        for _ in range(n_episodes):
+            state = env.reset()
+            is_terminal = False
+            episode_reward = 0.
 
-			for t in range(config.t_max):
+            for t in range(config.t_max):
 
-				action, _ = choose_action_embedding(state, epsilon=0)
-				state, reward, is_terminal = step(action)
-				episode_reward += reward
-				if is_terminal:
-					episode_rewards.append(episode_reward)
-					break
+                action, _ = choose_action_embedding(state, epsilon=0)
+                state, reward, is_terminal = step(action)
+                episode_reward += reward
+                if is_terminal:
+                    episode_rewards.append(episode_reward)
+                    break
         return np.mean(episode_rewards)
 
 
@@ -106,8 +107,8 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         
         if episode % config.eval_freq == 0:
             eval_rewards.append(eval())
-		    logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1])
-			eval_global_steps.append(global_step)    
+            logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1]))
+            eval_global_steps.append(global_step)    
             
         state = env.reset()
         is_terminal = False
@@ -115,7 +116,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         
         for t in range(config.t_max):
             action, embedding  = choose_action_embedding( state, 
-                                                          epsilon(global_step, config) )
+                                                          utils.epsilon(global_step, config) )
             next_state, reward, is_terminal = step(action)
             
             replay.push(state, action, reward, next_state, embedding)        
@@ -123,7 +124,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             episode_reward += reward 
             
             if len(replay) >= config.batch_size:           
-                train_step(config.batch_size) 
+                train_step() 
             
             # we call trajectory central planning with TCP frequency and when replay is full
             if ((global_step % config.tcp_frequency) == 0) and  (len(replay) == replay.capacity) :           

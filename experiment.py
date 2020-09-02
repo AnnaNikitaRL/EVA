@@ -9,7 +9,7 @@ from value_buffer import ValueBuffer
 from replay_buffer import ReplayBuffer
 import logging
 from config import Config, parse_arguments
-from train_test import train, test
+from train_test import train
 import utils
 
 env = None
@@ -36,8 +36,9 @@ def main():
     target_net.eval()
     os.makedirs(config.save_dir, exist_ok=True)
     replay_buffer = ReplayBuffer(config.replay_buffer_size, config.embedding_size, config.path_length)
-    value_buffer = ValueBuffer(config.value_buffer_capacity)
-    train()
+    optimizer = torch.optim.Adam(qnet.parameters(), lr=config.lr)
+    value_buffer = ValueBuffer(config.value_buffer_size)
+    train(env, qnet, target_net, optimizer, replay_buffer, value_buffer, config, device)
 
 
     

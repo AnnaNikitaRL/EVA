@@ -39,7 +39,7 @@ def parse_arguments(config):
     parser.add_argument('--path_length', default=config.path_length, type=int, help='length of trajectory for trajectory central plannig')
     parser.add_argument('--gamma', default=config.gamma, type=float, help='discount factor of rewards')
     parser.add_argument('--lambd', default=config.lambd, type=float, help='weight of non-parametric action-value')
-    parser.add_argument('--t_max', default=confg.t_max, type=int, help='maximum number of steps per episode')
+    parser.add_argument('--t_max', default=config.t_max, type=int, help='maximum number of steps per episode')
     parser.add_argument('--t_update', default=config.t_update, type=int, help='target network update frequency')
     parser.add_argument('--min_eps', default=config.min_eps, type=float, help='floor of exploration rate')
     parser.add_argument('--max_eps', default=config.max_eps, type=float, help='cap of exploration rate')
