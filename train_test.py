@@ -112,7 +112,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         """
         Runs n_episodes episodes with epsilon=0 and returns mean reward.
         """
-        if config.save_video:
+        if config.write_video:
             state_frames = []
 
         episode_rewards = []
@@ -125,7 +125,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             for t in range(config.t_max):
                 action, _ = choose_action_embedding(state, epsilon=0)
                 state, reward, is_terminal = step(action)
-                if config.save_video:
+                if config.write_video:
                     state_frames.append(state[0])
                 episode_reward += reward
                 if is_terminal:
