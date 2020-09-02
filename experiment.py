@@ -35,7 +35,6 @@ def main():
     target_net = Qnet(n_actions, embedding_size=config.embedding_size).to(device)
     target_net.load_state_dict(qnet.state_dict())
     target_net.eval()
-    os.makedirs(config.save_dir, exist_ok=True)
     replay_buffer = ReplayBuffer(config.replay_buffer_size, config.embedding_size, config.path_length)
     optimizer = torch.optim.Adam(qnet.parameters(), lr=config.lr)
     value_buffer = ValueBuffer(config.value_buffer_size)

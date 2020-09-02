@@ -1,8 +1,10 @@
+import os
+import logging
+import pickle
 import torch
 import torch.nn.functional as F
 import numpy as np
 import utils
-import logging
 
 logging.basicConfig(level=0)
 
@@ -14,9 +16,26 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
     eval_rewards = []
     total_rewards = []
     eval_global_steps = []
+    total_global_steps = []
     global_step = 0
     logging.info("training started...")
+    
+    def save_results(episode):
+        os.makedirs(config.save_dir, exist_ok=True)
+        with open (os.path.normpath('/'.join([config.save_dir, 'rewards.pkl'])), 'wb') as rew_file:
+            pickle.dump({'eval_rewards' : eval_rewards,
+                         'eval_global_steps' : eval_global_steps,
+                         'total_rewards' : total_rewards,
+                         'total_global_steps' : total_global_steps},
+                         rew_file
+                    )
+        with open (os.path.normpath('/'.join([config.save_dir, 'replay_buffer.pkl'])), 'wb') as replay_file:
+            pickle.dump(replay, replay_file)
 
+        with open (os.path.normpath('/'.join([config.save_dir, 'value_buffer_{}.pkl'.format(episode)])), 'wb') as vb_file:
+            pickle.dump(value_buffer, vb_file)
+        torch.save(qnet.state_dict(), os.path.normpath('/'.join([config.save_dir, 'qnet_state_dict_{}.pkl'.format(episode)])))
+        torch.save(qnet, os.path.normpath('/'.join([config.save_dir, 'qnet.pkl'])))      
     def choose_action_embedding(state, epsilon):
         """
         EVA policy is dictated by the action-value function 
@@ -108,16 +127,11 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
 
 
     for episode in range(1, config.n_episodes + 1, 1):
-        
-        if episode % config.eval_freq == 0:
-            eval_rewards.append(eval())
-            logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1]))
-            eval_global_steps.append(global_step)    
-            
         state = env.reset()
         is_terminal = False
         episode_reward = 0
         
+        # main loop for playing one episode
         for t in range(config.t_max):
             action, embedding  = choose_action_embedding( state, 
                                                           utils.epsilon(global_step, config) )
@@ -139,10 +153,21 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
                                             path_length=config.path_length)            
             
             # update of target net periodically
-            global_step +=1       
+            global_step +=1           
             if (global_step % config.t_update) == 0:
-                target_net.load_state_dict(qnet.state_dict())   
-                
+                target_net.load_state_dict(qnet.state_dict())
+            
             if is_terminal:
                 total_rewards.append(episode_reward)
+                total_global_steps.append(global_step)
                 break
+
+        # call evaluation every config.eval_freq episode
+        if episode % config.eval_freq == 0:
+            eval_rewards.append(eval())
+            logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1]))
+            eval_global_steps.append(global_step)   
+
+        # store results every config.save_freq episodes
+        if episode % config.save_freq == 0:
+            save_results(episode)

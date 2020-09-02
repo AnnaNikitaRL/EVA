@@ -26,7 +26,7 @@ class Config(argparse.Namespace):
         self.batch_size = 48
         self.num_tcp_paths = 10
         self.n_neighbors_value_buffer = 5
-        self.save_freq = 1000
+        self.save_freq = 2000
         self.eval_freq = 1000
         self.save_dir = 'results'
 
