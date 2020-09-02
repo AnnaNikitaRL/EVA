@@ -2,16 +2,20 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import utils
+import logging
+
+logging.basicConfig(level=0)
 
 def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device):
     """
-    performs loop for a train step for EVA
+    Performs loop for a train step for EVA
     """
     n_actions = env.action_space.n
     eval_rewards = []
     total_rewards = []
     eval_global_steps = []
     global_step = 0
+    logging.info("training started...")
 
     def choose_action_embedding(state, epsilon):
         """

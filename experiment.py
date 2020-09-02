@@ -15,7 +15,7 @@ import utils
 env = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 config = Config()
-
+logging.basicConfig(level=0)
 
 
 
@@ -28,6 +28,7 @@ config = Config()
 
 def main():
     global env
+    logging.info("Started...")
     env = utils.make_env(config)
     n_actions = env.action_space.n
     qnet = Qnet(n_actions, embedding_size=config.embedding_size).to(device)
