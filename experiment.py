@@ -10,9 +10,12 @@ import utils
 env = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 config = Config()
-logging.basicConfig(level=0)
+logging.basicConfig(level=20)
 
 def main():
+    ''' 
+    run the experiment
+    '''
     global env
     logging.info("Started...")
     env = utils.make_env(config)

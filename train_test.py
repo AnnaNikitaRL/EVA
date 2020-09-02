@@ -7,7 +7,7 @@ import numpy as np
 import utils
 from tcp import trajectory_central_planning
 
-logging.basicConfig(level=0)
+logging.basicConfig(level=20)
 
 def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device):
     """
@@ -140,6 +140,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             state_frames = state_frames.astype(np.uint8)
             # convert image from grey space to rgb (img still remains grey)
             state_frames = np.repeat(state_frames[:, :, :, np.newaxis], 3, axis=3)
+            state_frames = [frame for frame in state_frames]
             movie = editor.ImageSequenceClip(state_frames, fps=30)
             movie.write_videofile(full_filename('movie_{}'.format(episode)), 
                                   verbose=False, codec='mpeg4', logger=None)
