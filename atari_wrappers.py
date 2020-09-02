@@ -146,8 +146,8 @@ class PreprocessAtariObs(gym.ObservationWrapper):
     def observation(self, img):
         """what happens to each observation"""
         img = self._to_gray_scale(img.astype(np.float32)/255.)
-        img = transform.resize(img[ self.crop_height[0] : self.crop_height[1] 
-                                  ][ self.crop_width[0] : self.crop_width[1] ], 
+        img = transform.resize(img[ self.crop_height[0] : self.crop_height[1],
+                                    self.crop_width[0] : self.crop_width[1] ], 
                                     self.img_size[1:])
         return np.transpose(img, axes=[2,0,1])
 
