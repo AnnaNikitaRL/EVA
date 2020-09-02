@@ -25,9 +25,9 @@ class Config(argparse.Namespace):
         self.n_episodes = 80000
         self.batch_size = 48
         self.num_tcp_paths = 10
-        self.n_neigbors_value_buffer = 5
+        self.n_neighbors_value_buffer = 5
         self.save_freq = 1000
-        self.test_freq = 1000
+        self.eval_freq = 1000
         self.save_dir = 'results'
 
 def parse_arguments(config):
@@ -49,9 +49,9 @@ def parse_arguments(config):
     parser.add_argument('--n_episodes', default=config.n_episodes, type=int, help='number of episodes')
     parser.add_argument('--batch_size', default=config.batch_size, type=int, help='batch size for training')
     parser.add_argument('--num_tcp_paths', default=config.num_tcp_paths, type=int, help='number of trajectories for trajectory central planning')
-    parser.add_argument('--n_neigbors_value_buffer', default=config.n_neigbors_value_buffer, type=int, help='number of nearest neigbors to average to obtain non-parameteric action-value')
+    parser.add_argument('--n_neighbors_value_buffer', default=config.n_neighbors_value_buffer, type=int, help='number of nearest neigbors to average to obtain non-parameteric action-value')
 
-    parser.add_argument('--test_freq', default=config.save_freq, type=int, help='frequency, in episodes, of test runs (eps=0)')
+    parser.add_argument('--eval_freq', default=config.eval_freq, type=int, help='frequency, in episodes, of eval runs (eps=0)')
     parser.add_argument('--save_freq', default=config.save_freq, type=int, help='frequency, in episodes, of model saving')
     parser.add_argument('--save_dir', default=config.save_dir, help='directory to store results')
     parser.parse_args(namespace=config)

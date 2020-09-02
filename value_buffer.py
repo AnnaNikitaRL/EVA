@@ -25,7 +25,7 @@ class ValueBuffer(object):
         """ Build tree of neighbors on space of embeddings using default Euclidean metric """
         self.tree = neighbors.KDTree(np.array(self.embeddings))
     
-    def nn_QNP_mean(self, query, n_neighbors=5):
+    def nn_qnp_mean(self, query, n_neighbors=5):
         """ Calculates and returns action-value averaged across fixed number of neighbors """
         return torch.mean( torch.stack([self.values[q] for q in self.tree.query(query[np.newaxis], k=n_neighbors)[1][0]]), axis=0)
 

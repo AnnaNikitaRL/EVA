@@ -1,13 +1,18 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
+import utils
 
-def train(env, Q_param, Q_target, optimizer, replay, value_buffer, config, device):
+def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device):
     """
     performs loop for a train step for EVA
     """
     n_actions = env.action_space.n
-    def choose_action_embedding(state, lambd, epsilon):
+	eval_rewards = []
+    total_rewards = []
+    eval_global_steps = []
+
+    def choose_action_embedding(state, epsilon):
         """
         EVA policy is dictated by the action-value function 
         
@@ -19,8 +24,8 @@ def train(env, Q_param, Q_target, optimizer, replay, value_buffer, config, devic
         Input: state 
         return: action, embedding for state
         """
-        Q_param, embedding = qnet(torch.FloatTensor(state).to(device).unsqueeze(0))
-        Q_param            = Q_param.detach().cpu().squeeze()
+        q_param, embedding = qnet(torch.FloatTensor(state).to(device).unsqueeze(0))
+        q_param            = q_param.detach().cpu().squeeze()
         embedding          = embedding.detach().cpu().squeeze().numpy()
         
         # Chooses random action with probability epsilon
@@ -28,8 +33,8 @@ def train(env, Q_param, Q_target, optimizer, replay, value_buffer, config, devic
             action = np.random.randint(n_actions)
         else:
             if len(value_buffer) == value_buffer.capacity:
-                Q_param = lambd * Q_param + (1-lambd) * value_buffer.nn_Q(embedding)
-            action = torch.argmax(Q_param).item()
+                q_param = lambd * q_param + (1-lambd) * value_buffer.nn_qnp_mean(embedding, n_neighbors=config.n_neighbors_value_buffer)
+            action = torch.argmax(q_param).item()
         return action, embedding
 
     def step(action):
@@ -67,35 +72,54 @@ def train(env, Q_param, Q_target, optimizer, replay, value_buffer, config, devic
         # Compute Q values for all next states. 
         # Expected values for non-terminal next states are computed based on older target net. 
         # The use of mask helps to have expected state value or 0 for terminal state
-        Q_predicted              = qnet(state_batch)[0].gather(1, action_batch)
-        Q_target                 = torch.zeros_like(Q_predicted)
-        Q_target[non_final_mask] = target_net(next_state_batch)[0].max(1, keepdim=True)[0].detach()
+        q_predicted              = qnet(state_batch)[0].gather(1, action_batch)
+        q_target                 = torch.zeros_like(Q_predicted)
+        q_target[non_final_mask] = target_net(next_state_batch)[0].max(1, keepdim=True)[0].detach()
         
         # Compute expected Q values and optimize the model
-        loss = F.mse_loss(Q_predicted, Q_target*config.gamma + reward_batch)
+        loss = F.mse_loss(q_predicted, q_target*config.gamma + reward_batch)
         loss.backward()
-        optimizer.step() 
+        optimizer.step()
+    
+    def eval(n_episodes = 10):
+		"""
+		Runs n_episodes episodes with epsilon=0 and returns mean reward.
+		"""
+		episode_rewards = []
+		for _ in range(n_episodes):
+			state = env.reset()
+			is_terminal = False
+			episode_reward = 0.
+
+			for t in range(config.t_max):
+
+				action, _ = choose_action_embedding(state, epsilon=0)
+				state, reward, is_terminal = step(action)
+				episode_reward += reward
+				if is_terminal:
+					episode_rewards.append(episode_reward)
+					break
+        return np.mean(episode_rewards)
 
 
-    total_rewards     = []  
     for episode in range(1, config.n_episodes + 1, 1):
         
-        if episode %  config.test_freq == 0:
-            test(episode)    
+        if episode % config.eval_freq == 0:
+            eval_rewards.append(eval())
+		    logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1])
+			eval_global_steps.append(global_step)    
             
-        state               = env.reset()
-        is_terminal         = False
-        episode_reward      = 0
+        state = env.reset()
+        is_terminal = False
+        episode_reward = 0
         
         for t in range(config.t_max):
             action, embedding  = choose_action_embedding( state, 
-                                                          n_actions, 
-                                                          epsilon(global_step), 
-                                                          config.lambd )  
+                                                          epsilon(global_step, config) )
             next_state, reward, is_terminal = step(action)
             
             replay.push(state, action, reward, next_state, embedding)        
-            state          = next_state
+            state = next_state
             episode_reward += reward 
             
             if len(replay) >= config.batch_size:           

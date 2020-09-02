@@ -9,6 +9,7 @@ from value_buffer import ValueBuffer
 from replay_buffer import ReplayBuffer
 import logging
 from config import Config, parse_arguments
+from train_test import train, test
 import utils
 
 env = None
@@ -34,8 +35,11 @@ def main():
     target_net.load_state_dict(qnet.state_dict())
     target_net.eval()
     os.makedirs(config.save_dir, exist_ok=True)
-    replay = ReplayBuffer(config.replay_buffer_size, config.embedding_size, config.path_length)
-    value_buffer= ValueBuffer(config.value_buffer_capacity)
+    replay_buffer = ReplayBuffer(config.replay_buffer_size, config.embedding_size, config.path_length)
+    value_buffer = ValueBuffer(config.value_buffer_capacity)
+    train()
+
+
     
 
 
