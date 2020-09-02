@@ -132,7 +132,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
                     episode_rewards.append(episode_reward)
                     break
             
-        if config.save_video:
+        if config.write_video:
             from moviepy import editor
             state_frames = np.stack(state_frames, axis=0) * 255.
             state_frames = state_frames.astype(np.uint8)
