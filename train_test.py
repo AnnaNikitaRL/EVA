@@ -20,22 +20,25 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
     global_step = 0
     logging.info("training started...")
     
+    def full_filename(filename):
+        return os.path.normpath('/'.join([config.save_dir, filename]))
+
     def save_results(episode):
         os.makedirs(config.save_dir, exist_ok=True)
-        with open (os.path.normpath('/'.join([config.save_dir, 'rewards.pkl'])), 'wb') as rew_file:
+        with open (full_filename('rewards.pkl'), 'wb') as rew_file:
             pickle.dump({'eval_rewards' : eval_rewards,
                          'eval_global_steps' : eval_global_steps,
                          'total_rewards' : total_rewards,
                          'total_global_steps' : total_global_steps},
                          rew_file
                     )
-        with open (os.path.normpath('/'.join([config.save_dir, 'replay_buffer.pkl'])), 'wb') as replay_file:
+        with open (full_filename('replay_buffer.pkl'), 'wb') as replay_file:
             pickle.dump(replay, replay_file)
 
-        with open (os.path.normpath('/'.join([config.save_dir, 'value_buffer_{}.pkl'.format(episode)])), 'wb') as vb_file:
+        with open (full_filename('value_buffer_{}.pkl'.format(episode)), 'wb') as vb_file:
             pickle.dump(value_buffer, vb_file)
-        torch.save(qnet.state_dict(), os.path.normpath('/'.join([config.save_dir, 'qnet_state_dict_{}.pkl'.format(episode)])))
-        torch.save(qnet, os.path.normpath('/'.join([config.save_dir, 'qnet.pkl'])))      
+        torch.save(qnet.state_dict(), full_filename('qnet_state_dict_{}.pkl'.format(episode)))
+        torch.save(qnet, full_filename('qnet.pkl'))      
     def choose_action_embedding(state, epsilon):
         """
         EVA policy is dictated by the action-value function 
@@ -105,26 +108,41 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         loss.backward()
         optimizer.step()
     
-    def eval(n_episodes = 10):
+    def eval(episode, n_episodes = 10):
         """
         Runs n_episodes episodes with epsilon=0 and returns mean reward.
         """
+        if config.save_video:
+            state_frames = []
+
         episode_rewards = []
         for _ in range(n_episodes):
+
+
             state = env.reset()
             is_terminal = False
             episode_reward = 0.
-
             for t in range(config.t_max):
-
                 action, _ = choose_action_embedding(state, epsilon=0)
                 state, reward, is_terminal = step(action)
+                if config.save_video:
+                    state_frames.append(state[0])
                 episode_reward += reward
                 if is_terminal:
                     episode_rewards.append(episode_reward)
                     break
-        return np.mean(episode_rewards)
+            
+        if config.save_video:
+            from moviepy import editor
+            state_frames = np.stack(state_frames, axis=0) * 255.
+            state_frames = state_frames.astype(np.uint8)
+            # convert image from grey space to rgb (img still remains grey)
+            state_frames = np.repeat(state_frames[:, :, :, np.newaxis], 3, axis=3)
+            movie = editor.ImageSequenceClip(state_frames, fps=30)
+            movie.write_videofile(full_filename('movie_{}'.format(episode)), 
+                                  verbose=False, codec='mpeg4', logger=None)
 
+        return np.mean(episode_rewards)
 
     for episode in range(1, config.n_episodes + 1, 1):
         state = env.reset()
@@ -136,7 +154,6 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             action, embedding  = choose_action_embedding( state, 
                                                           utils.epsilon(global_step, config) )
             next_state, reward, is_terminal = step(action)
-            
             replay.push(state, action, reward, next_state, embedding)        
             state = next_state
             episode_reward += reward 
@@ -151,7 +168,6 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
                                             value_buffer, 
                                             num_neighbors=config.num_tcp_paths, 
                                             path_length=config.path_length)            
-            
             # update of target net periodically
             global_step +=1           
             if (global_step % config.t_update) == 0:
@@ -164,7 +180,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
 
         # call evaluation every config.eval_freq episode
         if episode % config.eval_freq == 0:
-            eval_rewards.append(eval())
+            eval_rewards.append(eval(episode))
             logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1]))
             eval_global_steps.append(global_step)   
 

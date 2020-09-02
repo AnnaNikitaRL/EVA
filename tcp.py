@@ -1,7 +1,7 @@
 import logging
 
 def trajectory_central_planning(replay, embedding, value_buffer, config):
-    """ trajectory selection and planning 
+    """ trajectory selection and planning
     
     Estimates for trajectories from replay buffer are calculated as below.
     Parametric calculation is used for off-trajectory value estimates.

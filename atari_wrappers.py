@@ -2,6 +2,7 @@
 # Added wrapper specific to torch dimension order
 
 import numpy as np
+from skimage import transform
 import gym
 from gym.spaces.box import Box
 
@@ -127,24 +128,26 @@ class ClipRewardEnv(gym.RewardWrapper):
         return np.sign(reward)
 
 
-from skimage import transform
-
 class PreprocessAtariObs(gym.ObservationWrapper):
-    def __init__(self, env, img_size=(84,84), crop_height=(0, 210), crop_width=(0, 160)):
+    def __init__(self, env, img_size=(84,84), crop_height=(0, 210), 
+                 crop_width=(0, 160), channel_weights=[1.0, 1.0, 1.0]):
         """A gym wrapper that crops, scales image into the desired shapes and grayscales it."""
         super().__init__(env)
         self.img_size = (1,) + img_size
         self.crop_height = crop_height
         self.crop_width = crop_width
+        self.channel_weights = channel_weights
         self.observation_space = Box(0.0, 1.0, self.img_size)
 
-    def _to_gray_scale(self, rgb, channel_weights=[0.8, 0.1, 0.1]):
-        return np.sum(rgb * np.array(channel_weights, dtype=np.float32).reshape((1,1,3)), axis=2, keepdims=True)
+    def _to_gray_scale(self, rgb):
+        return np.sum(rgb * np.array(self.channel_weights, dtype=np.float32).reshape((1,1,3)),
+                      axis=2, keepdims=True)
 
     def observation(self, img):
         """what happens to each observation"""
         img = self._to_gray_scale(img.astype(np.float32)/255.)
-        img = transform.resize(img[ self.crop_height[0] : self.crop_height[1] ][ self.crop_width[0] : self.crop_width[1] ], 
+        img = transform.resize(img[ self.crop_height[0] : self.crop_height[1] 
+                                  ][ self.crop_width[0] : self.crop_width[1] ], 
                                     self.img_size[1:])
         return np.transpose(img, axes=[2,0,1])
 
@@ -201,5 +204,6 @@ def wrap_atari(env, clip_rewards=True, env_reset_action='fire'):
 
     if clip_rewards:
         env = ClipRewardEnv(env)
-    env = PreprocessAtariObs(env)
+    env = PreprocessAtariObs(env, crop_height=(25, 200), 
+                 crop_width=(0, 160), channel_weights=[0.8, 0.1, 0.1])
     return env

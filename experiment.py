@@ -17,15 +17,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 config = Config()
 logging.basicConfig(level=0)
 
-
-
-
-
-
-
-
-
-
 def main():
     global env
     logging.info("Started...")
@@ -41,30 +32,7 @@ def main():
     train(env, qnet, target_net, optimizer, replay_buffer, value_buffer, config, device)
 
 
-    
-
-
-
-
-
-
-    print(config)
-
-
-
-
-
-
-    env.reset()
-    
-
-
 if __name__ == "__main__":
     parse_arguments(config)
-    #parser = argparse.ArgumentParser(prog="python experiment.py")
-    #parser.add_argument('--envname', help='Name of gym environment')
-    #args = parser.parse_args()
-    #print (vars(args))
-    #print(args.envname)
     main()
 
