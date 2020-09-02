@@ -127,7 +127,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             for _ in range(config.t_max):
                 action, _ = choose_action_embedding(state, epsilon=0)
                 state, reward, is_terminal = step(action)
-                if config.write_video:
+                if config.write_video and not is_terminal:
                     state_frames.append(state[0])
                 episode_reward += reward
                 if is_terminal:
