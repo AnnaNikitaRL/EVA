@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 
-def trajectory_central_planning(replay, embedding, value_buffer, config, device, qnet):
+def trajectory_central_planning(embedding, replay, value_buffer, qnet, config, device='cpu'):
     """ trajectory selection and planning
 
     Estimates for trajectories from replay buffer are calculated as below.

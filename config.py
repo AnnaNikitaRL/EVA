@@ -19,7 +19,7 @@ class Config(argparse.Namespace):
         self.t_update = 50
         self.min_eps = 0.1
         self.max_eps = 1.0
-        self.eps_decay = 2e-6
+        self.eps_decay = 5e-6
         self.replay_buffer_size = 400000
         self.value_buffer_size  = 2000
         self.n_episodes = 80000
@@ -29,7 +29,7 @@ class Config(argparse.Namespace):
         self.save_freq = 2000
         self.eval_freq = 1000
         self.save_dir = 'results'
-        self.write_video = False
+        self.write_video = True
 
 def parse_arguments(config):
     '''
