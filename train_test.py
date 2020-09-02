@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import utils
+from tcp import trajectory_central_planning
 
 logging.basicConfig(level=0)
 
@@ -60,7 +61,8 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             action = np.random.randint(n_actions)
         else:
             if len(value_buffer) == value_buffer.capacity:
-                q_param = lambd * q_param + (1-lambd) * value_buffer.nn_qnp_mean(embedding, n_neighbors=config.n_neighbors_value_buffer)
+                q_param = config.lambd * q_param + (1 - config.lambd) * value_buffer.nn_qnp_mean(
+                          embedding, n_neighbors=config.n_neighbors_value_buffer)
             action = torch.argmax(q_param).item()
         return action, embedding
 
@@ -108,7 +110,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         loss.backward()
         optimizer.step()
     
-    def eval(episode, n_episodes = 10):
+    def evaluate(episode, n_episodes = 10):
         """
         Runs n_episodes episodes with epsilon=0 and returns mean reward.
         """
@@ -122,7 +124,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
             state = env.reset()
             is_terminal = False
             episode_reward = 0.
-            for t in range(config.t_max):
+            for _ in range(config.t_max):
                 action, _ = choose_action_embedding(state, epsilon=0)
                 state, reward, is_terminal = step(action)
                 if config.write_video:
@@ -150,7 +152,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
         episode_reward = 0
         
         # main loop for playing one episode
-        for t in range(config.t_max):
+        for _ in range(config.t_max):
             action, embedding  = choose_action_embedding( state, 
                                                           utils.epsilon(global_step, config) )
             next_state, reward, is_terminal = step(action)
@@ -176,7 +178,7 @@ def train(env, qnet, target_net, optimizer, replay, value_buffer, config, device
 
         # call evaluation every config.eval_freq episode
         if episode % config.eval_freq == 0:
-            eval_rewards.append(eval(episode))
+            eval_rewards.append(evaluate(episode))
             logging.info("Episode: {}    mean_eval_reward = {}".format(episode, eval_rewards[-1]))
             eval_global_steps.append(global_step)   
 
