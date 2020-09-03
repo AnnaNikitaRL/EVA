@@ -18,7 +18,7 @@ In order to run the code with the default parameters use the snippet below. The 
 python experiment.py
 ```
 
-In order to run baseline DQN model one can set up weighting parameter &lambda to 1;
+In order to run baseline DQN model one can set up weighting parameter &lambda; to 1
 
 ```sh
 python experiment.py --lambd=1
