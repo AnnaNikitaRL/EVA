@@ -30,6 +30,15 @@ We ran experiments primarly on atari environments, such as "BreakoutNoFrameskip-
 Trajectory Central Planning (TCP) algorithm is a core of Ephemeral Value Adjustment. The idea behind it is to find some states in past experience that are in some sence similar to the given state. Similarity here is defined by measuring Euclidean distance in embedding space. Embeddings here are the outputs of fully-connected layer of the convolutional neural network used by agent. Ideally, once the network is good enough in predicting Q-values, the embeddings for the states similar in terms of further actions and rewards become close in space.</br>
 TCP unrolls several paths from the experience, starting from these similar states, and calculates the action values, based on actual rewards on-path, and on Q-values estimates by agent's neural network off-path. These non-parametric Q-values, as they called in the original work, are stored in the value buffer along with the embedding of the state they were calculated for.</br>
 We implemented two different version of TCP &ndash; as it was not explicitly stated in the original work what embeddings should be inserted as the keys to the value buffer. As the neural network changing over time, the embeddings for the states that were found as nearest to the given one would not be quite the same. There are two possibilities: use the old embeddings which we used to find the similar states as the keys to insert in the value buffer, or obtain new embeddings by passing these states into neural network and use them. We did not notice any significant difference between these two variants in our experiments. Currently, the latest version of the code uses the first variant.
+#### Embeddings
+After some time during the learning when the agent could play reasonably well we paused learning process to check how well searching neighbours in the embedding space works.
+We took a frame in the BreakOut game and made a request to replay buffer to yield its neighbors in the embedding space using approximate nearest neighbours search we mentioned above.</br></br>
+![query state](pictures/state_breakout.png)
+</br>*Query state* </br></br>
+![neighboring states](pictures/neighbors_breakout.png)
+</br>*Neighboring states* </br></br>
+You can see that the position and direction of the ball and the position of the bar are similar in the most cases, but the remaining blocks are different. It would be hard to achieve the same in the original frames space.
+
 
 ### Results
 As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 0. </br>
