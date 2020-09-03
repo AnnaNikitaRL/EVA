@@ -12,9 +12,18 @@ Original codes and install instructions could be found https://github.com/marius
 
 ### Running the code
 
+In order to run the code with the default parameters use the snippet below. The deafult parameters can be found in the module config.py in our repository.
+
 ```sh
 python experiment.py
 ```
+
+In order to run baseline DQN model one can switch off weighting parameter &lambda;
+
+```sh
+python experiment.py --lambd=0
+```
+
 ### Parameters and some differences from the original article
 We ran experiments primarly on atari environments, such as "BreakoutNoFrameskip-v4" and "AtlantisNoFrameskip-v4". We used EpisodicLifeEnv, FireReset or NoOpReset and MaxAndSkipEnv wrappers from OpenAI.baselines. We did not use four parallel agents like in original work. We also limit the size of experience replay to 400k. Other than that, we tweeked a little bit some parameters: greedy exploration rate (&varepsilon;) decay rate, Adam learning rate. Most of the parameters were kept the same as in the original work (Section 9 Atari Experiment Details).</br>
 
