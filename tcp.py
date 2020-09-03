@@ -16,6 +16,20 @@ def trajectory_central_planning(embedding, replay, value_buffer, qnet, config, d
     VNP(s_t)       =
                        max_a QNP(s_t, a),       otherwise
     """
+
+    def trajectory_offset(traj_start_idxs):
+        """finds last index of the trajectory in replay buffer for start indxs of the trajectories"""
+        traj_offsets = [] 
+        
+        # for each index we follow to the next state in replay buffer until path length or terminal state
+        for traj_start_idx in traj_start_idxs:     
+            for idx in range(config.path_length):
+                if replay.memory[(traj_start_idx + idx) % replay.capacity].next_state is None:
+                    break
+            traj_offsets.append(idx)
+            
+        return traj_offsets
+
     # taking neighbors from the replay buffer. Each index of the returned embedding
     # will be start of the trajectory
     traj_start_idxs, traj_embeddings = replay.neighbors( embedding,
@@ -24,7 +38,7 @@ def trajectory_central_planning(embedding, replay, value_buffer, qnet, config, d
     if len(traj_start_idxs) == 0:
         logging.info("no neighbors found")
     else:
-        traj_offsets = trajectory_offset(traj_start_idxs, config.path_length)
+        traj_offsets = trajectory_offset(traj_start_idxs)
 
         # initialisation and preparation
         traj_offsets     = np.array(traj_offsets)
@@ -67,15 +81,3 @@ def trajectory_central_planning(embedding, replay, value_buffer, qnet, config, d
         # re-build value buffer to be able to find neighbors taking into account updated values
         value_buffer.build_tree()
 
-def trajectory_offset(traj_start_idxs, path_length):
-    """finds last index of the trajectory in replay buffer for start indxs of the trajectories"""
-    traj_offsets = [] 
-    
-    # for each index we follow to the next state in replay buffer until path length or terminal state
-    for traj_start_idx in traj_start_idxs:     
-        for idx in range(path_length):
-            if replay.memory[(traj_start_idx + idx) % replay.capacity].next_state is None:
-                break
-        traj_offsets.append(idx)
-        
-    return traj_offsets
