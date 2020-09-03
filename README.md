@@ -32,7 +32,7 @@ TCP unrolls several paths from the experience, starting from these similar state
 We implemented two different version of TCP &ndash; as it was not explicitly stated in the original work what embeddings should be inserted as the keys to the value buffer. As the neural network changing over time, the embeddings for the states that were found as nearest to the given one would not be quite the same. There are two possibilities: use the old embeddings which we used to find the similar states as the keys to insert in the value buffer, or obtain new embeddings by passing these states into neural network and use them. We did not notice any significant difference between these two variants in our experiments. Currently, the latest version of the code uses the first variant.
 #### Embeddings
 After some time during the learning when the agent could play reasonably well we paused learning process to check how well searching neighbours in the embedding space works.
-We took a frame in the BreakOut game and made a request to replay buffer to yield its neighbors in the embedding space using approximate nearest neighbours search we mentioned above.</br></br>
+We took a frame in the Breakout game and made a request to replay buffer to yield its neighbors in the embedding space using approximate nearest neighbours search we mentioned above.</br></br>
 ![query state](pictures/state_breakout.png)
 </br>*Query state* </br></br>
 ![neighboring states](pictures/neighbors_breakout.png)
@@ -43,4 +43,10 @@ You can see that the position and direction of the ball and the position of the 
 ### Results
 As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 0. </br>
 
+Below is a video of how EVA algorithm plays on Breakout environment after 10000 episodes </br></br>
+![movie breakout](pictures/movie-10000.gif)
+</br>*Movie of Breakout play game after 10000 episodes* </br></br>
  
+Below is a moving average (window of 1000 episodes) of training rewards of two implementations of TCP (described in TCP section above) and DNQ with the same hyperparameters on Atlantis environment.</br></br>
+![atlantis rewards](pictures/atlantis.png)
+</br>*Moving average of training rewards for Atlantis* </br></br>
