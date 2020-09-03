@@ -18,10 +18,10 @@ In order to run the code with the default parameters use the snippet below. The 
 python experiment.py
 ```
 
-In order to run baseline DQN model one can switch off weighting parameter &lambda;
+In order to run baseline DQN model one can set up weighting parameter &lambda to 1;
 
 ```sh
-python experiment.py --lambd=0
+python experiment.py --lambd=1
 ```
 
 ### Parameters and some differences from the original article
@@ -41,7 +41,7 @@ You can see that the position and direction of the ball and the position of the 
 
 
 ### Results
-As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 0. </br>
+As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 1. </br>
 
 Below is a video of how EVA algorithm plays on Breakout environment after 10000 episodes </br></br>
 ![movie breakout](pictures/movie-10000.gif)
