@@ -16,9 +16,9 @@ Original codes and install instructions could be found https://github.com/marius
 python experiment.py
 ```
 ### Parameters and some differences from the original article
-We ran experiments primarly on atari environments, such as "BreakoutNoFrameskip-v4" and "AtlantisNoFrameskip-v4". We used EpisodicLifeEnv, FireReset or NoOpReset and MaxAndSkipEnv wrappers from OpenAI.baselines. We did not use four parallel agents like in original work. We also limit the size of experience replay to 400k. Other than that, we tweeked a little bit some parameters: greedy exploration rate (&varepsilon;) decay rate, Adam learning rate. Most of the parameters were kept the same as in the original article.<\br>
+We ran experiments primarly on atari environments, such as "BreakoutNoFrameskip-v4" and "AtlantisNoFrameskip-v4". We used EpisodicLifeEnv, FireReset or NoOpReset and MaxAndSkipEnv wrappers from OpenAI.baselines. We did not use four parallel agents like in original work. We also limit the size of experience replay to 400k. Other than that, we tweeked a little bit some parameters: greedy exploration rate (&varepsilon;) decay rate, Adam learning rate. Most of the parameters were kept the same as in the original work (Section 9 Atari Experiment Details).</br>
 
 ### Results
-As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 0. <\br>
+As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 0. </br>
 Also, we implemented 
  
