@@ -8,7 +8,7 @@ Project is done as part of the course <a href="http://deeppavlov.ai">DeepPavlov 
 ### Running the code
 We used PyTorch library version 1.6.</br>
 For performing approximate nearest neighbours search we used Fast Library for Approximate Nearest Neighbors (FLANN).
-Original codes and intall instructions could be found https://github.com/mariusmuja/flann.
+Original codes and install instructions could be found https://github.com/mariusmuja/flann.
 
 ### Learner
 
