@@ -5,7 +5,7 @@ Project is done as part of the course <a href="http://deeppavlov.ai">DeepPavlov 
 
 #### <a href="https://github.com/amfolity/">Anna Mazur</a>, <a href="https://github.com/darthrevenge">Nikita Trukhanov</a>
 
-### Prerequisities
+### Prerequisites
 We used PyTorch library version 1.6.</br>
 For performing approximate nearest neighbours search we used Fast Library for Approximate Nearest Neighbors (FLANN).
 Original codes and install instructions could be found https://github.com/mariusmuja/flann.
