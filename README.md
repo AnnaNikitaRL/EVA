@@ -12,7 +12,7 @@ Original codes and install instructions could be found https://github.com/marius
 
 ### Running the code
 
-In order to run the code with the default parameters use the snippet below. The deafult parameters can be found in the module config.py in our repository.
+In order to run the code with the default parameters use the snippet below. The default parameters can be found in the module config.py in our repository.
 
 ```sh
 python experiment.py
@@ -37,11 +37,11 @@ We took a frame in the Breakout game and made a request to replay buffer to yiel
 </br>*Query state* </br></br>
 ![neighboring states](pictures/neighbors_breakout.png)
 </br>*Neighboring states* </br></br>
-You can see that the position and direction of the ball and the position of the bar are similar in the most cases, but the remaining blocks are different. It would be hard to achieve the same in the original frames space.
+You can see that the position and direction of the ball and the position of the bar are similar in most cases, but the remaining blocks are different. It would be hard to achieve the same in the original frames space.
 
 
 ### Results
-As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda; equals 1. </br>
+As a benchmark we have used DQN of exactly the same atchitecture and hyperparameters. The only difference is that in DQN, weighting parameter for non-parametric Q-value, &lambda;, equals 1. </br>
 
 Below is a video of how EVA algorithm plays on Breakout environment after 10000 episodes </br></br>
 ![movie breakout](pictures/movie-10000.gif)
