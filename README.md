@@ -47,6 +47,6 @@ Below is a video of how EVA algorithm plays on Breakout environment after 10000 
 ![movie breakout](pictures/movie-10000.gif)
 </br>*Movie of Breakout play game after 10000 episodes* </br></br>
  
-Below is a moving average (window of 1000 episodes) of training rewards of two implementations of TCP (described in TCP section above) and DNQ with the same hyperparameters on Atlantis environment.</br></br>
+Below is a moving average (window of 1000 episodes) of training rewards of two implementations of TCP (described in TCP section above) and DQN with the same hyperparameters on Atlantis environment.</br></br>
 ![atlantis rewards](pictures/atlantis.png)
 </br>*Moving average of training rewards for Atlantis* </br></br>
